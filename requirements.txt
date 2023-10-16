@@ -1,0 +1,13 @@
+flask~=3.0.0
+sqlalchemy~=2.0.22
+sqlalchemy_utils~=0.41.1
+flask_jwt_extended~=4.5.3
+flask_sqlalchemy~=3.1.1
+flask-migrate>=4.0.5
+cryptography~=41.0.4
+passlib~=1.7.1
+waitress~=2.1.2
+psycopg2-binary~=2.9.9
+loguru~=0.7.2
+briefcase~=0.3.15
+toga~=0.3.1
