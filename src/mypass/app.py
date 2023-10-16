@@ -2,11 +2,26 @@
 BeeMyPass application.
 """
 import toga
-from toga.style import Pack
-from toga.style.pack import COLUMN, ROW
+from loguru import logger
 
 
 class MyPass(toga.App):
+    def serviceup(self):
+        import logging
+        import sys
+        from service import create_app
+
+        app = create_app()
+        logger.remove()
+        host = app.config['HOST']
+        port = app.config['PORT']
+        if app.debug:
+            logger.add(sys.stderr, level=logging.DEBUG)
+            app.run(host=host, port=port, debug=app.debug, use_reloader=False)
+        else:
+            import waitress
+            logger.add(sys.stderr, level=logging.ERROR)
+            waitress.serve(app, host=host, port=port, channel_timeout=10, threads=32)
 
     def startup(self):
         """
@@ -23,5 +38,6 @@ class MyPass(toga.App):
         self.main_window.show()
 
 
-def main():
-    return MyPass()
+def create_app():
+    app = MyPass()
+    return app

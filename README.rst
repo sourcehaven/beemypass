@@ -1,13 +1,11 @@
 MyPass
 ======
 
-MyPass Daemon project
-
-
 This package should be installed to run the daemon on your machine.
 Plugins, and such will be communicating with your own, local service.
 
-## PostgreSQL database initialization
+PostgreSQL database initialization
+----------------------------------
 
 > psql -U postgres
 
@@ -37,7 +35,8 @@ CREATE DATABASE mypass
 GRANT ALL ON DATABASE mypass TO mypass;
 ```
 
-## MySQL and MariaDB initialization
+MySQL and MariaDB initialization
+--------------------------------
 
 ```sql
 -- Create a user with a password
@@ -58,43 +57,55 @@ GRANT ALL PRIVILEGES ON mypass.* TO 'mypass'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
-### Migrations
+Migrations
+^^^^^^^^^^
 
 !!! TODO !!!
 
-## Environment setup
+Environment setup
+-----------------
 
 Database connection string should be configured using the environment variable `MYPASS_DB_CONNECTION_URI`.
 Should be set to something like: `{protocol}://{dbuser}:{dbpass}@{host}:{port}/{dbname}`, eg.:
 `postgresql+psycopg2://mypass:MyPassWord@localhost:5432/mypass`
 
-### Basic test env configuration
+Basic test env configuration
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 `FLASK_ENV=Development;MYPASS_DB_CONNECTION_URI=sqlite+pysqlite:///:memory:;MYPASS_TESTENV=1`
 
-### Setup in PostgreSQL
+Setup in PostgreSQL
+^^^^^^^^^^^^^^^^^^^
+
 `postgresql+psycopg2://mypass:MyPassWord@localhost:5432/mypass`
 
-### Setup in MySQL and MariaDB
+Setup in MySQL and MariaDB
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 `mysql://mypass:MyPassWord@localhost:3306/mypass`
 
-### Setup in SQLite
+Setup in SQLite
+^^^^^^^^^^^^^^^
 
 `sqlite:///:memory:`
 `sqlite:///path/db/data.db`
 `sqlite+pysqlite:///:memory:`
 
-## Development
+Development
+-----------
 
-### Run pylab notebook
+Run pylab notebook
+^^^^^^^^^^^^^^^^^^
 
 > jupyter lab
 
-### Run tests:
+Run tests:
+^^^^^^^^^^
 
 > pytest tests
 
-### Run coverage:
+Run coverage:
+^^^^^^^^^^^^^
 
 > pytest --cov-report html --cov=mypass tests
 
@@ -112,7 +123,8 @@ Run code style guide:
 
 > flake8 mypass
 
-### Cleanup
+Cleanup
+^^^^^^^
 
 To clean local binaries, run:
 

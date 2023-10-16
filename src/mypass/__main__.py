@@ -1,4 +1,8 @@
-from mypass.app import main
+from threading import Thread
+
+from mypass.app import create_app
 
 if __name__ == '__main__':
-    main().main_loop()
+    app = create_app()
+    Thread(target=app.serviceup, daemon=True).start()
+    app.main_loop()
