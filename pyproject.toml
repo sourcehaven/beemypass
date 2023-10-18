@@ -1,30 +1,55 @@
 # This project was generated with 0.3.15 using template: https://github.com/beeware/briefcase-template@v0.3.15
 [tool.briefcase]
-project_name = "BeeMyPass"
-bundle = "com.beemypass"
+project_name = "MyPass"
+bundle = "com.mypass"
 version = "0.0.1"
-url = "https://beemypass.com/mypassd"
+url = "https://mypass.com/mypass"
 license = "MIT license"
 author = "skyzip"
 author_email = "skyzip96@gmail.com"
 
 [tool.briefcase.app.mypass]
 formal_name = "MyPass"
-description = "MyPass daemon application."
+description = "MyPass application."
 long_description = """More details about the app should go here.
 """
 icon = "src/mypass/resources/mypass"
 sources = [
     "src/mypass",
+    "src/service",
+    "src/mypass.config.json5"
 ]
 test_sources = [
     "tests",
 ]
 
+requires-python = ">=3.11"
 requires = [
+    "flask>=3.0.0",
+    "sqlalchemy>=2.0.22",
+    "sqlalchemy_utils>=0.41.1",
+    "flask_jwt_extended>=4.5.3",
+    "flask_sqlalchemy>=3.1.1",
+    "flask-migrate>=4.0.5",
+    "cryptography>=41.0.4",
+    "passlib>=1.7.1",
+    "waitress>=2.1.2",
+    "psycopg2-binary>=2.9.9",
+    "loguru>=0.7.2",
+    "json5>=0.9.14",
+    "pystray~=0.19.5",
+    "pillow~=10.1.0"
 ]
 test_requires = [
     "pytest",
+]
+classifiers = [
+    "Development Status :: Beta",
+    "License :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.11"
 ]
 
 [tool.briefcase.app.mypass.macOS]

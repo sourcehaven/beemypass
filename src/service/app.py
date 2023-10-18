@@ -11,7 +11,7 @@ from service import config
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_object(getattr(config, f'{os.environ.get("FLASK_ENV", "")}Config'))
+    app.config.from_object(getattr(config, f'{config.getenv("FLASK_ENV", "")}Config'))
     app.json = ModelPlusJSONProvider(app)
 
     register_blueprints(app)
@@ -25,8 +25,7 @@ def create_app():
 
     jwt = JWTManager(app)
     jwt.token_in_blocklist_loader(check_if_token_in_blacklist)
-
-    if os.getenv('MYPASS_TESTENV', False):
+    if config.getenv('MYPASS_TESTENV'):
         from ._dummy import init_db
         with app.app_context():
             init_db(db)

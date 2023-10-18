@@ -1,0 +1,5 @@
+{
+  "FLASK_ENV": "Production", // Production, Development, Staging, Testing
+  "MYPASS_DB_CONNECTION_URI": "sqlite+pysqlite:///:memory:", // The db connection string of your choosing
+  // "MYPASS_TESTENV": 1
+}
