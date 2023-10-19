@@ -103,7 +103,7 @@ class User(Model):
         if password is not None:
             salt = crypto.gensalt()
             token = crypto.initpw(256)
-            secret_token = crypto.encryptsecret(token, pw=password, salt=salt)
+            secret_token = crypto.encryptsecret(token, key=password, salt=salt)
             hashed_pw = crypto.hashpw(password, salt)
         return cls(
             username=username, password=hashed_pw, secretpw=password, token=secret_token, salt=salt,
@@ -139,7 +139,7 @@ class User(Model):
     def token(self):
         if not hasattr(self, '_secretpw') or self._secretpw is None:
             raise RuntimeError(f'{self.__class__.__name__} object at {id(self)} is not unlocked.')
-        return crypto.decryptsecret(self._token, pw=self._secretpw, salt=self.salt)
+        return crypto.decryptsecret(self._token, key=self._secretpw, salt=self.salt)
 
     @token.setter
     def token(self, __value):
@@ -152,7 +152,7 @@ class User(Model):
             raise RuntimeError(
                 f'{self.__class__.__name__} object at {id(self)} does not have an encryption key.\n'
                 f'Set the object\'s password attribute')
-        self._token: str = crypto.encryptsecret(__value, pw=self._secretpw, salt=self.salt)
+        self._token: str = crypto.encryptsecret(__value, key=self._secretpw, salt=self.salt)
 
     @property
     def password(self):

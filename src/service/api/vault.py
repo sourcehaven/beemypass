@@ -2,7 +2,7 @@ from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from service.db import utils as db_utils
-from .com import IDENTITY_UID, IDENTITY_TOK
+from service.types.const import IDENTITY_UID
 
 VaultApi = Blueprint('vault', __name__)
 
@@ -34,7 +34,6 @@ def vault_select():
     crit['active'] = True
     crit['deleted'] = False
     entries = db_utils.select_vault_entry(**crit)
-    entries = db_utils.unlock_vault_entry(entries, enckey=identity[IDENTITY_TOK])
     return entries, 200
 
 
@@ -49,7 +48,6 @@ def vault_history():
     crit['id'] = id
     crit['user_id'] = identity[IDENTITY_UID]
     entry = db_utils.get_vault_entry(**crit)
-    entry = db_utils.unlock_vault_entry(entry, enckey=identity[IDENTITY_TOK])
     entries = [entry]
     while entry.parent is not None:
         entry = entry.parent

@@ -86,7 +86,7 @@ def insert_vault_entry(
         notes: str = None,
         folder: str = None
 ):
-    entry = VaultEntry.create(
+    entry = VaultEntry(
         username=username, password=password, title=title, website=website, notes=notes, folder=folder)
     db.session.add(entry)
     db.session.commit()
@@ -187,6 +187,7 @@ def update_vault_entry(
         new_website: str = ...,
         new_notes: str = ...,
         new_folder: str = ...,
+        new_password: str = ...
 ):
     if isinstance(created_at, str):
         created_at = datetime.fromisoformat(created_at)
@@ -198,8 +199,11 @@ def update_vault_entry(
         'active': active, 'deleted': deleted})
     fields = VaultEntry.map_update({
         'username': new_username, 'title': new_title, 'website': new_website,
-        'notes': new_notes, 'folder': new_folder})
+        'notes': new_notes, 'folder': new_folder, 'password': new_password})
 
+    if new_password in fields and not isinstance(id, int):
+        # TODO: you got sth better, eh?
+        raise TypeError('During password update, a single id must be specified.')
     if len(fields) == 0:
         return 0
 

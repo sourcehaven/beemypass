@@ -6,7 +6,7 @@ from flask_jwt_extended import create_access_token, create_refresh_token, jwt_re
 from loguru import logger
 
 from service.db import utils as db_utils
-from .com import IDENTITY_UID, IDENTITY_USER, IDENTITY_PW, IDENTITY_TOK
+from service.types.const import IDENTITY_UID, IDENTITY_USER, IDENTITY_PW, IDENTITY_TOK
 
 AuthApi = Blueprint('auth', __name__)
 

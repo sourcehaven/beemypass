@@ -1,7 +1,7 @@
 import pystray
 from PIL import Image
 
-from mypass.app import create_app, serviceup
+from service.app import create_app, serviceup
 
 
 def on_open(icon, query):

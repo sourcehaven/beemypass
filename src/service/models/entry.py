@@ -4,7 +4,7 @@ from typing import Optional, Mapping
 import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from service import crypto
+from service import types
 from service.db import db
 from service.functional import querymap
 from .base import Model
@@ -16,6 +16,24 @@ VaultTag = db.Table(
 )
 
 
+class KeyServer:
+    # noinspection PyMethodMayBeStatic
+    def generate(self):
+        try:
+            from flask_jwt_extended import get_jwt_identity
+            identity = get_jwt_identity()
+            return identity[types.IDENTITY_TOK]
+        except RuntimeError:
+            return None
+
+
+keyserver = KeyServer()
+
+
+def get_key():
+    return keyserver.generate()
+
+
 class VaultEntry(Model):
     __tablename__ = 'vault'
     __table_args__ = {'extend_existing': True}
@@ -24,7 +42,7 @@ class VaultEntry(Model):
     user_id: Mapped[int] = mapped_column(sa.ForeignKey('user.id', ondelete='CASCADE'))
     parent_id: Mapped[Optional[int]] = mapped_column(sa.ForeignKey('vault.id', ondelete='CASCADE'))
     username: Mapped[str] = mapped_column(sa.String(255))
-    salt: Mapped[str] = mapped_column(sa.String(255))
+    password: Mapped[str] = mapped_column(types.StringSaltedEncryptedType(sa.String(255), key=get_key))
     title: Mapped[Optional[str]] = mapped_column(sa.String(255))
     website: Mapped[Optional[str]] = mapped_column(sa.String(255))
     notes: Mapped[Optional[str]] = mapped_column(sa.String(2048))
@@ -33,8 +51,6 @@ class VaultEntry(Model):
     deleted_at: Mapped[Optional[datetime]] = mapped_column(sa.DateTime(timezone=True))
     active: Mapped[bool] = mapped_column(sa.Boolean, default=True)
     deleted: Mapped[bool] = mapped_column(sa.Boolean, default=False)
-
-    _password: Mapped[str] = mapped_column(sa.String(255), name='password')
 
     parent: Mapped[Optional['VaultEntry']] = relationship(
         remote_side='VaultEntry.id', single_parent=True, cascade='all, delete-orphan')
@@ -48,7 +64,6 @@ class VaultEntry(Model):
             user_id=None,
             username=None,
             password=None,
-            salt=None,
             title=None,
             website=None,
             notes=None,
@@ -57,8 +72,6 @@ class VaultEntry(Model):
             deleted=None,
             created_at=None,
             deleted_at=None,
-            stfu=False,
-            _encryptionkey=None,
     ):
         """
         Model class representing a vault entry.
@@ -68,7 +81,6 @@ class VaultEntry(Model):
             user_id (int | None):
             username (str | None):
             password (str | None):
-            salt (str | None):
             title (str | None):
             website (str | None):
             notes (str | None):
@@ -77,15 +89,10 @@ class VaultEntry(Model):
             deleted (bool | None):
             created_at (datetime | None):
             deleted_at (datetime | None):
-            stfu (bool):
-            _encryptionkey (str | None):
 
         Raises:
             TypeError: if called without setting the stfu=True parameter
         """
-
-        if not stfu:
-            raise TypeError('You dont know what you are doing! Use create classmethod instead.')
 
         if active is None:
             active = True
@@ -95,13 +102,21 @@ class VaultEntry(Model):
         # noinspection PyTypeChecker
         self.id = id
         # noinspection PyTypeChecker
-        self.user_id = user_id
+        if user_id is None:
+            try:
+                from flask_jwt_extended import get_jwt_identity
+                identity = get_jwt_identity()
+                self.user_id = identity[types.IDENTITY_UID]
+            except RuntimeError:
+                # noinspection PyTypeChecker
+                self.user_id = None
+        else:
+            # noinspection PyTypeChecker
+            self.user_id = user_id
         # noinspection PyTypeChecker
         self.username = username
         # noinspection PyTypeChecker
-        self._password = password
-        # noinspection PyTypeChecker
-        self.salt = salt
+        self.password = password
         # noinspection PyTypeChecker
         self.title = title
         # noinspection PyTypeChecker
@@ -118,58 +133,6 @@ class VaultEntry(Model):
         self.created_at = created_at
         # noinspection PyTypeChecker
         self.deleted_at = deleted_at
-        self._encryptionkey = _encryptionkey
-
-    @classmethod
-    def create(
-            cls,
-            id=None,
-            *,
-            user_id=None,
-            username=None,
-            password=None,
-            title=None,
-            website=None,
-            notes=None,
-            folder=None,
-            encryptionkey=None,
-    ):
-        """
-        Use this for the creation of a vault entry model.
-
-        Parameters:
-            id (int):
-            user_id (int):
-            username (str):
-            password (str):
-            title (str):
-            website (str):
-            notes (str):
-            folder (str):
-            encryptionkey (str):
-        """
-
-        if user_id is None or encryptionkey is None:
-            from flask_jwt_extended import get_jwt_identity
-            from service.api.com import IDENTITY_UID, IDENTITY_TOK
-            identity = get_jwt_identity()
-            if user_id is None:
-                try:
-                    user_id = identity[IDENTITY_UID]
-                except RuntimeError:
-                    pass
-            if encryptionkey is None:
-                try:
-                    encryptionkey = identity[IDENTITY_TOK]
-                except RuntimeError:
-                    pass
-
-        obj = cls(
-            id=id, user_id=user_id, username=username, password=None, salt=None, title=title, website=website,
-            notes=notes, folder=folder, _encryptionkey=encryptionkey, stfu=True)
-        obj.salt = crypto.gensalt()
-        obj.password = password
-        return obj
 
     @classmethod
     def copy(cls, obj):
@@ -179,22 +142,18 @@ class VaultEntry(Model):
         Parameters:
             obj (VaultEntry):
         """
+
         kwargs = {
             'user_id': obj.user_id,
             'username': obj.username,
-            'password': obj._password,
-            'salt': obj.salt,
+            'password': obj.password,
             'title': obj.title,
             'website': obj.website,
             'notes': obj.notes,
             'folder': obj.folder,
             'active': obj.active,
-            'deleted': obj.deleted,
-            'stfu': True,
+            'deleted': obj.deleted
         }
-        if hasattr(obj, '_encryptionkey'):
-            kwargs['_encryptionkey'] = obj._encryptionkey
-
         return VaultEntry(**kwargs)
 
     def __repr__(self):
@@ -208,45 +167,6 @@ class VaultEntry(Model):
                 f'website={self.website}), '
                 f'folder={self.folder}, '
                 f'active={self.active}')
-
-    @property
-    def password(self):
-        if not hasattr(self, '_encryptionkey') or self._encryptionkey is None:
-            raise RuntimeError(
-                f'{self.__class__.__name__} object at {id(self)} does not have an encryption key.\n'
-                f'Set the object\'s password attribute')
-        return crypto.decryptsecret(self._password, pw=self._encryptionkey, salt=self.salt)
-
-    @password.setter
-    def password(self, __value):
-        """
-        Parameters:
-            __value (str): the value that will be salted and hashed to create a password
-        """
-
-        if not hasattr(self, '_encryptionkey') or self._encryptionkey is None:
-            raise RuntimeError(f'{self.__class__.__name__} object at {id(self)} is not unlocked.')
-        self._password: str = crypto.encryptsecret(__value, pw=self._encryptionkey, salt=self.salt)
-
-    @property
-    def encryptedpassword(self):
-        return self._password
-
-    @property
-    def encryptionkey(self):
-        if hasattr(self, '_encryptionkey'):
-            return self._encryptionkey
-        return None
-
-    @encryptionkey.setter
-    def encryptionkey(self, __value):
-        """
-
-        Parameters:
-            __value (str): sets the secret key for password encryption (usually user token)
-        """
-
-        self._encryptionkey = __value
 
     _crit_whitelist = {
         'id', 'user_id', 'username', 'title', 'website', 'notes', 'folder', 'create_time', 'active', 'deleted'}

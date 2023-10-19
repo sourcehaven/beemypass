@@ -15,11 +15,11 @@ port = 5757
 
 
 try:
-    import mypass
-    with open(mypass.current_app.paths.app / 'mypass.config.json5', 'r') as fp:
+    import bee
+    with open(bee.current_app.paths.app / 'mypass.config.json5', 'r') as fp:
         environ: dict = json5.load(fp)
         logger.info('Loaded file :: mypass.config.json5')
-except (IOError, AttributeError):
+except (IOError, AttributeError, RuntimeError):
     environ = {
         'FLASK_ENV': 'Production',
         'MYPASS_DB_CONNECTION_URI': 'sqlite+pysqlite:///:memory:',

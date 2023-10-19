@@ -6,7 +6,7 @@ from types import TracebackType
 import toga
 from loguru import logger
 
-from mypass.globals import _cv_app
+from bee.globals import _cv_app
 
 
 def serviceup():

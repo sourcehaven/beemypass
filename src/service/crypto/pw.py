@@ -17,82 +17,82 @@ def initpw(nbytes: int = 256, return_bytes: bool = False):
     return token
 
 
-def encrypt_secret_bytes(secret: bytes, pw: bytes, salt: bytes = None):
-    key, salt = derive_key_from_pw(pw, salt=salt)
+def encrypt_secret_bytes(secret: bytes, key: bytes, salt: bytes = None):
+    key, salt = derive_key_from_pw(key, salt=salt)
     fernet = Fernet(key)
     token = fernet.encrypt(secret)
     return token, salt
 
 
-def encrypt_secret_str(secret: str, pw: str, salt: str = None):
-    pw = pw.encode('utf-8')
+def encrypt_secret_str(secret: str, key: str, salt: str = None):
+    key = key.encode('utf-8')
     secret = secret.encode('utf-8')
     if salt is not None:
         salt = salt.encode('utf-8')
-    token, salt = encrypt_secret_bytes(secret=secret, pw=pw, salt=salt)
+    token, salt = encrypt_secret_bytes(secret=secret, key=key, salt=salt)
     return token.decode('utf-8'), salt.decode('utf-8')
 
 
 @overload
-def encryptsecret(secret: bytes, pw: bytes) -> tuple[bytes, bytes]: ...
+def encryptsecret(secret: bytes, key: bytes) -> tuple[bytes, bytes]: ...
 
 
 @overload
-def encryptsecret(secret: str, pw: str) -> tuple[str, str]: ...
+def encryptsecret(secret: str, key: str) -> tuple[str, str]: ...
 
 
 @overload
-def encryptsecret(secret: bytes, pw: bytes, salt: bytes) -> bytes: ...
+def encryptsecret(secret: bytes, key: bytes, salt: bytes) -> bytes: ...
 
 
 @overload
-def encryptsecret(secret: str, pw: str, salt: str) -> str: ...
+def encryptsecret(secret: str, key: str, salt: str) -> str: ...
 
 
-def encryptsecret(secret, pw, salt=None):
+def encryptsecret(secret, key, salt=None):
     if salt is None:
-        if isinstance(secret, bytes) and isinstance(pw, bytes):
-            return encrypt_secret_bytes(secret, pw)
-        if isinstance(secret, str) and isinstance(pw, str):
-            return encrypt_secret_str(secret, pw)
+        if isinstance(secret, bytes) and isinstance(key, bytes):
+            return encrypt_secret_bytes(secret, key)
+        if isinstance(secret, str) and isinstance(key, str):
+            return encrypt_secret_str(secret, key)
         else:
             raise ValueError('Arguments `secret` and `pw` should be both bytes or both str objects.')
-    if isinstance(secret, bytes) and isinstance(pw, bytes) and isinstance(salt, bytes):
-        return encrypt_secret_bytes(secret, pw, salt)[0]
-    if isinstance(secret, str) and isinstance(pw, str) and isinstance(salt, str):
-        return encrypt_secret_str(secret, pw, salt)[0]
+    if isinstance(secret, bytes) and isinstance(key, bytes) and isinstance(salt, bytes):
+        return encrypt_secret_bytes(secret, key, salt)[0]
+    if isinstance(secret, str) and isinstance(key, str) and isinstance(salt, str):
+        return encrypt_secret_str(secret, key, salt)[0]
     else:
         raise ValueError('Arguments `secret`, `pw`, and `salt` should be both bytes or both str objects.')
 
 
-def decrypt_secret_bytes(secret: bytes, pw: bytes, salt: bytes):
-    key, salt = derive_key_from_pw(pw=pw, salt=salt)
+def decrypt_secret_bytes(secret: bytes, key: bytes, salt: bytes):
+    key, salt = derive_key_from_pw(pw=key, salt=salt)
     fernet = Fernet(key)
     message = fernet.decrypt(secret)
     return message
 
 
-def decrypt_secret_str(secret: str, pw: str, salt: str):
+def decrypt_secret_str(secret: str, key: str, salt: str):
     secret = secret.encode('utf-8')
-    pw = pw.encode('utf-8')
+    key = key.encode('utf-8')
     salt = salt.encode('utf-8')
-    message = decrypt_secret_bytes(secret, pw, salt)
+    message = decrypt_secret_bytes(secret, key, salt)
     return message.decode('utf-8')
 
 
 @overload
-def decryptsecret(secret: bytes, pw: bytes, salt: bytes) -> bytes: ...
+def decryptsecret(secret: bytes, key: bytes, salt: bytes) -> bytes: ...
 
 
 @overload
-def decryptsecret(secret: str, pw: str, salt: str) -> str: ...
+def decryptsecret(secret: str, key: str, salt: str) -> str: ...
 
 
-def decryptsecret(secret, pw, salt):
-    if isinstance(secret, bytes) and isinstance(pw, bytes) and isinstance(salt, bytes):
-        return decrypt_secret_bytes(secret, pw, salt)
-    if isinstance(secret, str) and isinstance(pw, str) and isinstance(salt, str):
-        return decrypt_secret_str(secret, pw, salt)
+def decryptsecret(secret, key, salt):
+    if isinstance(secret, bytes) and isinstance(key, bytes) and isinstance(salt, bytes):
+        return decrypt_secret_bytes(secret, key, salt)
+    if isinstance(secret, str) and isinstance(key, str) and isinstance(salt, str):
+        return decrypt_secret_str(secret, key, salt)
     else:
         raise ValueError('Arguments `secret`, `pw`, and `salt` should all be bytes or all be str objects.')
 
